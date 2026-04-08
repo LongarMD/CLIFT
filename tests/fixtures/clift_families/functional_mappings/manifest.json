@@ -1,0 +1,16 @@
+{
+  "family": "functional_mappings",
+  "generator": "generate_clift_dataset",
+  "kwargs": {
+    "n_instances_per_cell": 10,
+    "seed": 42,
+    "tasks": [
+      "lookup_table",
+      "arithmetic_rule",
+      "conditional_rule"
+    ],
+    "instruct": false
+  },
+  "expected_record_count": 2160,
+  "content_sha256": "c1c0fc8f8453ce400ed604783c5d897a94895e4805f77ff91a71b7bd8266b32e"
+}

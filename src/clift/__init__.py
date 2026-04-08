@@ -11,7 +11,6 @@ from .common import (
 )
 from .data import generate_clift_dataset
 
-
 __all__ = [
     "APPLICATIONS",
     "applications_for_task",

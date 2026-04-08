@@ -4,7 +4,19 @@ import random
 from typing import Any, Dict, List, Tuple
 
 import numpy as np
-from clrs import build_sampler as build_clrs_sampler
+
+
+def _clrs_build_sampler(*args: Any, **kwargs: Any):
+    """Lazily load DeepMind CLRS (optional dependency via ``clift[clrs]``)."""
+    try:
+        from clrs import build_sampler as build_clrs_sampler
+    except ImportError as e:
+        raise ImportError(
+            "Tasks 'insertion_sort' and 'binary_search' require the optional CLRS "
+            "dependency. Install with: pip install 'clift[clrs]' "
+            "(or uv sync --extra clrs)."
+        ) from e
+    return build_clrs_sampler(*args, **kwargs)
 
 # ============================================================================
 # HELPER FUNCTIONS
@@ -42,7 +54,7 @@ def generate_clrs_insertion_sort(seed: int = 42, difficulty: int = 1) -> Dict[st
     cfg = CLRS_ISORT_DIFFICULTY[difficulty]
     length = cfg["length"]
 
-    sampler, spec = build_clrs_sampler(
+    sampler, spec = _clrs_build_sampler(
         name="insertion_sort",
         seed=seed,
         num_samples=1,
@@ -89,7 +101,7 @@ def _clrs_isort_format_demonstration(
     struct: Dict[str, Any], app: str, rng: random.Random
 ) -> Tuple[str, List[Any]]:
     cfg = CLRS_ISORT_DIFFICULTY[struct["difficulty"]]
-    sampler, _ = build_clrs_sampler(
+    sampler, _ = _clrs_build_sampler(
         name="insertion_sort",
         seed=struct["seed"] + 1,
         num_samples=cfg["n_fs_examples"],
@@ -394,10 +406,9 @@ CLRS_BSEARCH_DIFFICULTY = {
 
 
 def generate_clrs_binary_search(seed: int = 42, difficulty: int = 1) -> Dict[str, Any]:
-    rng = random.Random(seed)
     cfg = CLRS_BSEARCH_DIFFICULTY[difficulty]
 
-    sampler, spec = build_clrs_sampler(
+    sampler, spec = _clrs_build_sampler(
         name="binary_search",
         seed=seed,
         num_samples=1,
@@ -422,10 +433,10 @@ def generate_clrs_binary_search(seed: int = 42, difficulty: int = 1) -> Dict[str
     trace_states = []
     last_state = None
     for low_h, high_h in zip(raw_low_h, raw_high_h):
-        l, h = int(np.argmax(low_h[0])), int(np.argmax(high_h[0]))
-        if (l, h) != last_state:
-            trace_states.append((l, h))
-            last_state = (l, h)
+        lo, hi = int(np.argmax(low_h[0])), int(np.argmax(high_h[0]))
+        if (lo, hi) != last_state:
+            trace_states.append((lo, hi))
+            last_state = (lo, hi)
 
     return {
         "task_type": "binary_search",
@@ -445,7 +456,7 @@ def _clrs_bsearch_format_demonstration(
     struct: Dict[str, Any], app: str, rng: random.Random
 ) -> Tuple[str, List[Any]]:
     cfg = CLRS_BSEARCH_DIFFICULTY[struct["difficulty"]]
-    sampler, _ = build_clrs_sampler(
+    sampler, _ = _clrs_build_sampler(
         name="binary_search",
         seed=struct["seed"] + 1,
         num_samples=cfg["n_fs_examples"],

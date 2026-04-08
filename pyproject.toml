@@ -1,7 +1,7 @@
 [project]
 name = "clift"
 version = "1.0.0"
-description = "Add your description here"
+description = "CLIFT: A Benchmark for Contextual Learning across Inference, Format, and Transfer"
 readme = "README.md"
 authors = [{ name = "LongarMD", email = "mark.longar@gmail.com" }]
 requires-python = ">=3.12,<3.14"
@@ -9,7 +9,13 @@ dependencies = [
     "numpy>=2.4.1",
     "pandas>=3.0.0",
     "tqdm>=4.67.1",
-    "dm-clrs",
+]
+
+[project.optional-dependencies]
+clrs = ["dm-clrs>=2.0.0"]
+
+[dependency-groups]
+dev = [
     "pytest>=9.0.3",
     "ruff>=0.15.9",
 ]
@@ -18,5 +24,25 @@ dependencies = [
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[tool.uv.sources]
-dm-clrs = { git = "https://github.com/google-deepmind/clrs.git" }
+[tool.hatch.build.targets.wheel]
+packages = ["src/clift"]
+
+[tool.hatch.build.targets.sdist]
+exclude = ["/.*", "/tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+markers = [
+    "clrs: requires optional dm-clrs (clrs package) for sampler-backed tasks",
+]
+
+[tool.ruff]
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+ignore = [
+    "E501", # line length; codebase uses long string literals
+]

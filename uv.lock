@@ -127,22 +127,34 @@ name = "clift"
 version = "1.0.0"
 source = { editable = "." }
 dependencies = [
-    { name = "dm-clrs" },
     { name = "numpy" },
     { name = "pandas" },
+    { name = "tqdm" },
+]
+
+[package.optional-dependencies]
+clrs = [
+    { name = "dm-clrs" },
+]
+
+[package.dev-dependencies]
+dev = [
     { name = "pytest" },
     { name = "ruff" },
-    { name = "tqdm" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "dm-clrs", git = "https://github.com/google-deepmind/clrs.git" },
+    { name = "dm-clrs", marker = "extra == 'clrs'", specifier = ">=2.0.0" },
     { name = "numpy", specifier = ">=2.4.1" },
     { name = "pandas", specifier = ">=3.0.0" },
+    { name = "tqdm", specifier = ">=4.67.1" },
+]
+
+[package.metadata.requires-dev]
+dev = [
     { name = "pytest", specifier = ">=9.0.3" },
     { name = "ruff", specifier = ">=0.15.9" },
-    { name = "tqdm", specifier = ">=4.67.1" },
 ]
 
 [[package]]
@@ -157,7 +169,7 @@ wheels = [
 [[package]]
 name = "dm-clrs"
 version = "2.0.3"
-source = { git = "https://github.com/google-deepmind/clrs.git#bfd042f049b32194c2c4b287f88c73da69996e39" }
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "absl-py" },
     { name = "attrs" },
@@ -173,6 +185,10 @@ dependencies = [
     { name = "tensorflow" },
     { name = "tfds-nightly" },
     { name = "toolz" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/96/31/129f29984cae4980cc18c121458f85be3339f529a4d59eb2127c8ff05c13/dm_clrs-2.0.3.tar.gz", hash = "sha256:a177affc168f42e718b17ddab6b39bb08501a7fb7df0603bdbb1cffde33f5b4e", size = 101012 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/28/95/1f94ba4e37cd2e258cfef5716f2f280da677e0daa0b1b92e5d1a6dbc2aed/dm_clrs-2.0.3-py3-none-any.whl", hash = "sha256:7bde6019408780cbcafc064abf32a1f4d004f1b53fab9ac8069c07ea343e57af", size = 130997 },
 ]
 
 [[package]]

@@ -213,7 +213,10 @@ class CLIFTInstance:
 
 
 def mod_inverse(a: int, p: int) -> int:
-    """Modular multiplicative inverse via Fermat's little theorem."""
+    """Modular multiplicative inverse via Fermat's little theorem.
+
+    *p* must be prime and not divide *a* (standard finite-field preconditions).
+    """
     return pow(a, p - 2, p)
 
 
@@ -228,7 +231,11 @@ def affine_period(a: int, b: int, p: int) -> int:
 
 
 def permutation_cycle_info(mapping: Dict[str, str]) -> Tuple[int, int]:
-    """Return (number of fixed points, longest cycle length) of a permutation."""
+    """Return (number of fixed points, longest cycle length) of a permutation.
+
+    *mapping* must be closed under iteration (every value is a key), as for a
+    permutation on a finite set; otherwise lookup may raise ``KeyError``.
+    """
     visited: set[str] = set()
     fixed = 0
     longest = 0
@@ -256,7 +263,7 @@ def export_jsonl(instances: List[CLIFTInstance], path: str | Path) -> None:
     """Export LIFT instances to a HuggingFace-compatible JSONL file."""
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         for inst in instances:
             f.write(json.dumps(inst.to_dict()) + "\n")
 
@@ -264,7 +271,7 @@ def export_jsonl(instances: List[CLIFTInstance], path: str | Path) -> None:
 def load_jsonl(path: str | Path) -> List[Dict[str, Any]]:
     """Load LIFT instances from a JSONL file."""
     records: List[Dict[str, Any]] = []
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         for line in f:
             records.append(json.loads(line))
     return records

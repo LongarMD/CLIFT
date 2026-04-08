@@ -1,5 +1,5 @@
+import importlib.util
 import random
-
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 from .common import (
@@ -16,36 +16,36 @@ from .common import (
 
 # Import all task generators and formatters/probes
 from .tasks import (
-    generate_lookup_table,
-    format_lookup,
-    probe_lookup,
-    generate_arithmetic_rule,
-    format_arithmetic,
-    probe_arithmetic,
-    generate_conditional_rule,
-    format_conditional,
-    probe_conditional,
-    generate_clrs_insertion_sort,
-    format_clrs_insertion_sort,
-    probe_clrs_insertion_sort,
-    generate_clrs_max_subarray,
-    format_clrs_max_subarray,
-    probe_clrs_max_subarray,
-    generate_clrs_binary_search,
-    format_clrs_binary_search,
-    probe_clrs_binary_search,
-    generate_clrs_naive_string_matcher,
-    format_clrs_naive_string_matcher,
-    probe_clrs_naive_string_matcher,
-    generate_spatial_translation,
-    format_spatial_translation,
-    probe_spatial_translation,
-    generate_affine_dynamics_2d,
     format_affine_dynamics_2d,
-    probe_affine_dynamics_2d,
-    generate_register_machine_2d,
+    format_arithmetic,
+    format_clrs_binary_search,
+    format_clrs_insertion_sort,
+    format_clrs_max_subarray,
+    format_clrs_naive_string_matcher,
+    format_conditional,
+    format_lookup,
     format_register_machine_2d,
+    format_spatial_translation,
+    generate_affine_dynamics_2d,
+    generate_arithmetic_rule,
+    generate_clrs_binary_search,
+    generate_clrs_insertion_sort,
+    generate_clrs_max_subarray,
+    generate_clrs_naive_string_matcher,
+    generate_conditional_rule,
+    generate_lookup_table,
+    generate_register_machine_2d,
+    generate_spatial_translation,
+    probe_affine_dynamics_2d,
+    probe_arithmetic,
+    probe_clrs_binary_search,
+    probe_clrs_insertion_sort,
+    probe_clrs_max_subarray,
+    probe_clrs_naive_string_matcher,
+    probe_conditional,
+    probe_lookup,
     probe_register_machine_2d,
+    probe_spatial_translation,
 )
 from .tasks.spatial import SpatialGenerationError
 
@@ -113,7 +113,9 @@ _TASK_PROBES = {
     "register_machine_2d": probe_register_machine_2d,
 }
 
-_CLRS_TASKS = {
+# Tasks that use CLRS-style format names and application axes (forward / inverse / ood).
+# Includes ``spatial_translation``, which is not CLRS-backed but shares the same axes.
+_CLRS_FORMAT_AXIS_TASKS: Set[str] = {
     "insertion_sort",
     "max_subarray",
     "binary_search",
@@ -121,13 +123,20 @@ _CLRS_TASKS = {
     "spatial_translation",
 }
 
+# Tasks whose generators call into the optional ``clrs`` Python package (dm-clrs).
+_TASKS_REQUIRING_CLRS_SAMPLER: Set[str] = {"insertion_sort", "binary_search"}
+
+
+def _clrs_sampler_available() -> bool:
+    return importlib.util.find_spec("clrs") is not None
+
 
 def _task_default_formats(task: str) -> List[str]:
-    return CLRS_FORMATS if task in _CLRS_TASKS else list(FORMATS)
+    return CLRS_FORMATS if task in _CLRS_FORMAT_AXIS_TASKS else list(FORMATS)
 
 
 def _task_default_applications(task: str) -> List[str]:
-    if task in _CLRS_TASKS:
+    if task in _CLRS_FORMAT_AXIS_TASKS:
         return CLRS_APPLICATIONS
     return list(applications_for_task(task))
 
@@ -252,7 +261,9 @@ def generate_clift_dataset(
     Args:
         n_instances_per_cell: Number of instances per (T, F, A, D) cell.
         seed: Master random seed for reproducibility.
-        tasks: Subset of tasks (default: all tasks defined in clift.common.TASKS).
+        tasks: Subset of tasks (default: all tasks in ``TASKS``, except that
+            ``insertion_sort`` and ``binary_search`` are omitted if the optional
+            ``clrs`` package is not installed unless you pass them explicitly).
         formats: Subset of formats (default: all four).
         applications: Subset of applications (default: union of all task apps).
         difficulties: Subset of difficulty levels (default: [1, 2, 3]).
@@ -263,7 +274,23 @@ def generate_clift_dataset(
         List of CLIFTInstance objects.
     """
     rng = random.Random(seed)
-    tasks = tasks or TASKS
+    if tasks is None:
+        tasks = (
+            list(TASKS)
+            if _clrs_sampler_available()
+            else [t for t in TASKS if t not in _TASKS_REQUIRING_CLRS_SAMPLER]
+        )
+    else:
+        tasks = list(tasks)
+
+    if not _clrs_sampler_available():
+        blocked = [t for t in tasks if t in _TASKS_REQUIRING_CLRS_SAMPLER]
+        if blocked:
+            raise ValueError(
+                f"These tasks require the optional CLRS dependency: {blocked}. "
+                "Install with pip install 'clift[clrs]' or uv sync --extra clrs."
+            )
+
     difficulties = difficulties or DIFFICULTIES
 
     missing = [t for t in tasks if t not in _TASK_GENERATORS]

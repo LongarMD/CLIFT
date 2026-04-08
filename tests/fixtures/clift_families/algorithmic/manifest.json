@@ -1,0 +1,17 @@
+{
+  "family": "algorithmic",
+  "generator": "generate_clift_dataset",
+  "kwargs": {
+    "n_instances_per_cell": 10,
+    "seed": 42,
+    "tasks": [
+      "insertion_sort",
+      "max_subarray",
+      "binary_search",
+      "naive_string_matcher"
+    ],
+    "instruct": false
+  },
+  "expected_record_count": 1440,
+  "content_sha256": "cf7a4ca67609fd1c61f4dc866a91e029e678d00f37fd03700acc5bbe21e0c68e"
+}

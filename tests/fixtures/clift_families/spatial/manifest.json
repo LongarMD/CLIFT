@@ -1,0 +1,14 @@
+{
+  "family": "spatial",
+  "generator": "generate_clift_dataset",
+  "kwargs": {
+    "n_instances_per_cell": 10,
+    "seed": 42,
+    "tasks": [
+      "spatial_translation"
+    ],
+    "instruct": false
+  },
+  "expected_record_count": 360,
+  "content_sha256": "14f35560c799b0fce6eb957b01cf85e3e526b8d2b0b420c70aff436f11f196ee"
+}

@@ -1,0 +1,15 @@
+{
+  "family": "dynamic_structures",
+  "generator": "generate_clift_dataset",
+  "kwargs": {
+    "n_instances_per_cell": 10,
+    "seed": 42,
+    "tasks": [
+      "affine_dynamics_2d",
+      "register_machine_2d"
+    ],
+    "instruct": false
+  },
+  "expected_record_count": 1200,
+  "content_sha256": "d587667f728f7f3ccfab5e5efed0b06f6782181fd193160f72d59539b1dc8662"
+}

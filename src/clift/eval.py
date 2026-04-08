@@ -1,14 +1,11 @@
 import ast
 import difflib
-import logging
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 
-from clift.common import APPLICATIONS, FORMATS
-
-logger = logging.getLogger(__name__)
+from .common import APPLICATIONS, FORMATS
 
 # ====================================================================
 # TEXT NORMALISATION & SCORING
@@ -33,12 +30,10 @@ def first_line_match(prediction: str, target: str) -> bool:
 
 
 def _extract_first_segment(prediction: str) -> str:
-    """Extract the model's generated answer, stripping prompt hallucinations."""
+    """Extract the model's answer segment, trimming apparent prompt restarts."""
     text = prediction.strip()
 
-    # CRITICAL FIX: Removed the \n\n split that was destroying Instruct CoT responses!
-
-    # Split only on tokens that indicate the model is hallucinating a new prompt
+    # Split on cues that often indicate the model started a new prompt mid-output
     cue_parts = re.split(
         r"\n\s*(?:Question:|Input:|Q:|Sort by weight:|Target array:|Rule:|Formal Specification:)",
         text,
@@ -203,8 +198,13 @@ def score_dataset(
     instances: List[Dict[str, Any]],
     predictions: List[str],
 ) -> pd.DataFrame:
+    if len(instances) != len(predictions):
+        raise ValueError(
+            f"instances and predictions must have the same length; "
+            f"got {len(instances)} and {len(predictions)}"
+        )
     records = []
-    for inst, pred in zip(instances, predictions):
+    for inst, pred in zip(instances, predictions, strict=True):
         extracted = extract_single_token_answer(pred)
         target_norm = normalize_text(inst["target"])
         extracted_norm = normalize_text(extracted)
@@ -233,9 +233,7 @@ def score_dataset(
                 "correct_extracted": correct_extracted,
                 "correct_fl": first_line_match(pred, inst["target"]),
                 "correct_contains": contains_match(pred, inst["target"]),
-                "soft_score": compute_soft_score(
-                    pred, inst["target"]
-                ),  # New Metric Added!
+                "soft_score": compute_soft_score(pred, inst["target"]),
                 "predicted_token_in_vocab": in_vocab,
                 "spatial_manhattan_distance": spatial_dist,
                 "spatial_near_miss": (spatial_dist == 1)

@@ -18,8 +18,9 @@ LOOKUP_DIFFICULTY = {
 def generate_lookup_table(seed: int = 42, difficulty: int = 1) -> Dict[str, Any]:
     """Generate a random bijective permutation on a symbol set.
 
-    The permutation maps animal names to animal names (no fixed points at
-    the permutation level, though individual fixed points are possible).
+    Maps a sampled subset of animal names to the same set. The full image
+    ordering is shuffled so it is not the identity list; individual symbols
+    may still map to themselves (fixed points).
     """
     rng = random.Random(seed)
     n = LOOKUP_DIFFICULTY[difficulty]["n_symbols"]
@@ -155,7 +156,6 @@ def _lookup_probe_ood(
     but this probe asks for batch decoding (inverse on multiple symbols).
     """
     mapping = struct["mapping"]
-    inv = {v: k for k, v in mapping.items()}
     symbols = list(mapping.keys())
     rng.shuffle(symbols)
     k = min(len(symbols), 2 + struct["difficulty"])
