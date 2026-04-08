@@ -1,0 +1,22 @@
+[project]
+name = "clift"
+version = "1.0.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [{ name = "LongarMD", email = "mark.longar@gmail.com" }]
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "numpy>=2.4.1",
+    "pandas>=3.0.0",
+    "tqdm>=4.67.1",
+    "dm-clrs",
+    "pytest>=9.0.3",
+    "ruff>=0.15.9",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv.sources]
+dm-clrs = { git = "https://github.com/google-deepmind/clrs.git" }
