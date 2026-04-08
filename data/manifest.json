@@ -1,0 +1,23 @@
+{
+  "description": "Full CLIFT benchmark matrix (all tasks, default formats and applications per task).",
+  "generator": "generate_clift_dataset",
+  "kwargs": {
+    "n_instances_per_cell": 10,
+    "seed": 42,
+    "instruct": false,
+    "tasks": [
+      "lookup_table",
+      "arithmetic_rule",
+      "conditional_rule",
+      "insertion_sort",
+      "max_subarray",
+      "binary_search",
+      "naive_string_matcher",
+      "spatial_translation",
+      "affine_dynamics_2d",
+      "register_machine_2d"
+    ]
+  },
+  "expected_record_count": 5160,
+  "content_sha256": "a8228a9f08092ac9679ffc9cfdb1cce6b0921df7909fac33cc0e0487bdba62d6"
+}

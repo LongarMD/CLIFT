@@ -60,7 +60,6 @@ def generate_clrs_insertion_sort(seed: int = 42, difficulty: int = 1) -> Dict[st
         num_samples=1,
         length=length,
         track_max_steps=True,
-        use_padding=False,
     )
 
     sample = sampler.next(batch_size=1)
@@ -107,7 +106,6 @@ def _clrs_isort_format_demonstration(
         num_samples=cfg["n_fs_examples"],
         length=cfg["length"],
         track_max_steps=False,
-        use_padding=False,
     )
 
     lines = []
@@ -414,7 +412,6 @@ def generate_clrs_binary_search(seed: int = 42, difficulty: int = 1) -> Dict[str
         num_samples=1,
         length=cfg["length"],
         track_max_steps=True,
-        use_padding=False,
     )
     sample = sampler.next(batch_size=1)
 
@@ -462,7 +459,6 @@ def _clrs_bsearch_format_demonstration(
         num_samples=cfg["n_fs_examples"],
         length=cfg["length"],
         track_max_steps=False,
-        use_padding=False,
     )
     lines = []
     for _ in range(cfg["n_fs_examples"]):
