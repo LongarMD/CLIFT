@@ -52,7 +52,7 @@ def test_fixture_family_lists_registered_tasks(family_slug: str) -> None:
     family_dir, manifest_path, baseline_path = _family_paths(family_slug)
     assert family_dir.is_dir(), (
         f"Missing fixture directory for family {family_slug!r}: {family_dir}. "
-        "Run scripts/regenerate_clift_family_baselines.py."
+        "Run scripts/regen_locked_datasets.py (see script docstring)."
     )
     assert manifest_path.is_file(), f"Missing manifest for family {family_slug!r}: {manifest_path}"
     assert baseline_path.is_file(), f"Missing baseline JSONL for family {family_slug!r}: {baseline_path}"

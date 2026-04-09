@@ -2,6 +2,8 @@ import importlib.util
 import random
 from typing import Any, Dict, List, Optional, Set, Tuple
 
+from tqdm import tqdm
+
 from .common import (
     APPLICATIONS,
     DIFFICULTIES,
@@ -239,6 +241,32 @@ def _generate_instance(
     )
 
 
+def _count_dataset_instances(
+    tasks: List[str],
+    formats: Optional[List[str]],
+    applications: Optional[List[str]],
+    difficulties: List[int],
+    n_instances_per_cell: int,
+) -> int:
+    """Count instances that will be emitted (matches ``generate_clift_dataset`` loops)."""
+    total = 0
+    for task in tasks:
+        task_formats = (
+            list(formats) if formats is not None else _task_default_formats(task)
+        )
+        task_apps = (
+            list(applications)
+            if applications is not None
+            else _task_default_applications(task)
+        )
+        for fmt in task_formats:
+            for app in task_apps:
+                if not _is_supported(task, fmt, app):
+                    continue
+                total += len(difficulties) * n_instances_per_cell
+    return total
+
+
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
@@ -252,6 +280,7 @@ def generate_clift_dataset(
     applications: Optional[List[str]] = None,
     difficulties: Optional[List[int]] = None,
     instruct: bool = False,
+    show_progress: bool = False,
 ) -> List[CLIFTInstance]:
     """Generate the complete CLIFT evaluation matrix.
 
@@ -269,6 +298,7 @@ def generate_clift_dataset(
         difficulties: Subset of difficulty levels (default: [1, 2, 3]).
         instruct: If True, populate messages on each instance for use
             with tokenizer.apply_chat_template().
+        show_progress: If True, show a tqdm progress bar on stderr while generating.
 
     Returns:
         List of CLIFTInstance objects.
@@ -301,47 +331,60 @@ def generate_clift_dataset(
             f"Available tasks in this build: {available}"
         )
 
+    total_instances = _count_dataset_instances(
+        tasks, formats, applications, difficulties, n_instances_per_cell
+    )
+
     instances: List[CLIFTInstance] = []
     idx = 0
-    for task in tasks:
-        task_formats = (
-            list(formats) if formats is not None else _task_default_formats(task)
-        )
-        task_apps = (
-            list(applications)
-            if applications is not None
-            else _task_default_applications(task)
-        )
-
-        supported_formats = set(_task_default_formats(task))
-        supported_apps = set(_task_default_applications(task))
-        bad_formats = [f for f in task_formats if f not in supported_formats]
-        bad_apps = [a for a in task_apps if a not in supported_apps]
-        if bad_formats or bad_apps:
-            raise ValueError(
-                f"Task '{task}' received unsupported axes. "
-                f"Unsupported formats={bad_formats}, unsupported applications={bad_apps}. "
-                f"Supported formats={sorted(supported_formats)}, "
-                f"supported applications={sorted(supported_apps)}"
+    with tqdm(
+        total=total_instances,
+        desc="CLIFT dataset",
+        unit="inst",
+        disable=not show_progress,
+    ) as pbar:
+        for task in tasks:
+            task_formats = (
+                list(formats) if formats is not None else _task_default_formats(task)
+            )
+            task_apps = (
+                list(applications)
+                if applications is not None
+                else _task_default_applications(task)
             )
 
-        for fmt in task_formats:
-            for app in task_apps:
-                if not _is_supported(task, fmt, app):
-                    continue
-                for diff in difficulties:
-                    for _ in range(n_instances_per_cell):
-                        inst = _generate_instance(
-                            task,
-                            fmt,
-                            app,
-                            diff,
-                            seed=rng.randint(0, 2**31),
-                            instruct=instruct,
-                        )
-                        inst.instance_id = idx
-                        instances.append(inst)
-                        idx += 1
+            supported_formats = set(_task_default_formats(task))
+            supported_apps = set(_task_default_applications(task))
+            bad_formats = [f for f in task_formats if f not in supported_formats]
+            bad_apps = [a for a in task_apps if a not in supported_apps]
+            if bad_formats or bad_apps:
+                raise ValueError(
+                    f"Task '{task}' received unsupported axes. "
+                    f"Unsupported formats={bad_formats}, unsupported applications={bad_apps}. "
+                    f"Supported formats={sorted(supported_formats)}, "
+                    f"supported applications={sorted(supported_apps)}"
+                )
+
+            pbar.set_postfix_str(task, refresh=False)
+
+            for fmt in task_formats:
+                for app in task_apps:
+                    if not _is_supported(task, fmt, app):
+                        continue
+                    for diff in difficulties:
+                        for _ in range(n_instances_per_cell):
+                            inst = _generate_instance(
+                                task,
+                                fmt,
+                                app,
+                                diff,
+                                seed=rng.randint(0, 2**31),
+                                instruct=instruct,
+                            )
+                            inst.instance_id = idx
+                            instances.append(inst)
+                            idx += 1
+                            pbar.update(1)
     return instances
 
 

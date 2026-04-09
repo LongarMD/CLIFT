@@ -2,7 +2,7 @@ import json
 import random
 from typing import Any, Dict, List, Tuple
 
-from clift.common import ITEM_WORDS, mod_inverse, permutation_cycle_info
+from clift.common import ITEM_WORDS
 
 # ============================================================================
 # LOOKUP TABLE TASK
@@ -136,17 +136,6 @@ def _lookup_probe_inverse(
     )
 
 
-def _lookup_probe_articulation(
-    struct: Dict[str, Any], held_out: List[Any], rng: random.Random
-) -> Tuple[str, str]:
-    mapping = struct["mapping"]
-    parts = ", ".join(f"{s} → {t}" for s, t in sorted(mapping.items()))
-    return (
-        "Question: List the complete mapping in the form a → b, c → d, ... One line only.\nAnswer: ",
-        parts,
-    )
-
-
 def _lookup_probe_ood(
     struct: Dict[str, Any], held_out: List[Any], rng: random.Random
 ) -> Tuple[str, str]:
@@ -170,33 +159,6 @@ def _lookup_probe_ood(
     )
 
 
-def _lookup_probe_planning(
-    struct: Dict[str, Any], held_out: List[Any], rng: random.Random
-) -> Tuple[str, str]:
-    mapping = struct["mapping"]
-    start = rng.choice(struct["symbols"])
-    k = 2 + struct["difficulty"]
-    current = start
-    for _ in range(k):
-        current = mapping[current]
-    q = (
-        f"Question: If you apply the mapping {k} times starting from "
-        f"'{start}', what do you get? Give only the one word.\nAnswer: "
-    )
-    return q, current
-
-
-def _lookup_probe_structural(
-    struct: Dict[str, Any], held_out: List[Any], rng: random.Random
-) -> Tuple[str, str]:
-    mapping = struct["mapping"]
-    fixed, _ = permutation_cycle_info(mapping)
-    return (
-        "Question: How many symbols are mapped to themselves (fixed points)? Give only the exact integer.\nAnswer: ",
-        str(fixed),
-    )
-
-
 def probe_lookup(
     struct: Dict[str, Any],
     held_out: List[Any],
@@ -207,10 +169,7 @@ def probe_lookup(
     probes = {
         "forward": _lookup_probe_forward,
         "inverse": _lookup_probe_inverse,
-        "articulation": _lookup_probe_articulation,
         "ood": _lookup_probe_ood,
-        "planning": _lookup_probe_planning,
-        "structural": _lookup_probe_structural,
     }
     return probes[application](struct, held_out, rng)
 
@@ -334,6 +293,14 @@ def format_arithmetic(
     return formatters[fmt](struct, rng)
 
 
+def mod_inverse(a: int, p: int) -> int:
+    """Modular multiplicative inverse via Fermat's little theorem.
+
+    *p* must be prime and not divide *a* (standard finite-field preconditions).
+    """
+    return pow(a, p - 2, p)
+
+
 # --- Probes ---------------------------------------------------------------
 
 
@@ -361,16 +328,6 @@ def _arith_probe_inverse(
     )
 
 
-def _arith_probe_articulation(
-    struct: Dict[str, Any], held_out: List[Any], rng: random.Random
-) -> Tuple[str, str]:
-    a, b, p = struct["a"], struct["b"], struct["prime"]
-    return (
-        "Question: Describe the rule f in the form f(x) = ... (mod ...). One line only.\nAnswer: ",
-        f"f(x) = {a}x + {b} (mod {p})",
-    )
-
-
 def _arith_probe_ood(
     struct: Dict[str, Any], held_out: List[Any], rng: random.Random
 ) -> Tuple[str, str]:
@@ -384,37 +341,6 @@ def _arith_probe_ood(
     )
 
 
-def _arith_probe_planning(
-    struct: Dict[str, Any], held_out: List[Any], rng: random.Random
-) -> Tuple[str, str]:
-    a, b, p = struct["a"], struct["b"], struct["prime"]
-    k = 2 + struct["difficulty"]
-    target = rng.randint(0, p - 1)
-    a_inv = mod_inverse(a, p)
-    x = target
-    for _ in range(k):
-        x = (x - b) * a_inv % p
-    q = (
-        f"Question: Find x such that applying f exactly {k} times "
-        f"starting from x gives {target}. Give only the exact integer.\nAnswer: "
-    )
-    return q, str(x)
-
-
-def _arith_probe_structural(
-    struct: Dict[str, Any], held_out: List[Any], rng: random.Random
-) -> Tuple[str, str]:
-    a, b, p = struct["a"], struct["b"], struct["prime"]
-    if a == 1:
-        n_fixed = p if b == 0 else 0
-    else:
-        n_fixed = 1
-    return (
-        "Question: How many values of x satisfy f(x) = x? Give only the exact integer.\nAnswer: ",
-        str(n_fixed),
-    )
-
-
 def probe_arithmetic(
     struct: Dict[str, Any],
     held_out: List[Any],
@@ -425,10 +351,7 @@ def probe_arithmetic(
     probes = {
         "forward": _arith_probe_forward,
         "inverse": _arith_probe_inverse,
-        "articulation": _arith_probe_articulation,
         "ood": _arith_probe_ood,
-        "planning": _arith_probe_planning,
-        "structural": _arith_probe_structural,
     }
     return probes[application](struct, held_out, rng)
 
@@ -622,23 +545,6 @@ def _cond_probe_inverse(
     )
 
 
-def _cond_probe_articulation(
-    struct: Dict[str, Any], held_out: List[Any], rng: random.Random
-) -> Tuple[str, str]:
-    a1, b1 = struct["a1"], struct["b1"]
-    a2, b2 = struct["a2"], struct["b2"]
-    p, threshold = struct["prime"], struct["threshold"]
-    answer = (
-        f"f(x) = {a1}x + {b1} (mod {p}) if x < {threshold}, "
-        f"f(x) = {a2}x + {b2} (mod {p}) if x >= {threshold}"
-    )
-    return (
-        "Question: Describe the rule f. Note that it may use different "
-        "formulas for different input ranges. One line only.\nAnswer: ",
-        answer,
-    )
-
-
 def _cond_probe_ood(
     struct: Dict[str, Any], held_out: List[Any], rng: random.Random
 ) -> Tuple[str, str]:
@@ -652,59 +558,6 @@ def _cond_probe_ood(
     )
 
 
-def _cond_probe_planning(
-    struct: Dict[str, Any], held_out: List[Any], rng: random.Random
-) -> Tuple[str, str]:
-    """Find x such that f^k(x) = target by backward iteration."""
-    pairs = struct["pairs"]
-    p = struct["prime"]
-    k = 2 + struct["difficulty"]
-    target = rng.randint(0, p - 1)
-    # Build reverse map for backward search
-    rev: Dict[int, List[int]] = {}
-    for x, y in pairs.items():
-        rev.setdefault(y, []).append(x)
-    # Walk backward k steps
-    current = target
-    for _ in range(k):
-        preimages = rev.get(current, [])
-        if not preimages:
-            # No preimage — pick a new target and restart
-            target = rng.randint(0, p - 1)
-            current = target
-            break
-        current = rng.choice(preimages)
-    # Verify forward
-    check = current
-    for _ in range(k):
-        check = pairs[check]
-    if check != target:
-        # Fallback: just use a known forward chain
-        start = rng.randint(0, p - 1)
-        current = start
-        for _ in range(k):
-            current = pairs[current]
-        target = current
-        current = start
-    q = (
-        f"Question: Find x such that applying f exactly {k} times "
-        f"starting from x gives {target}. Give only the exact integer.\nAnswer: "
-    )
-    return q, str(current)
-
-
-def _cond_probe_structural(
-    struct: Dict[str, Any], held_out: List[Any], rng: random.Random
-) -> Tuple[str, str]:
-    """Count the threshold value — tests whether the model detected the split."""
-    threshold = struct["threshold"]
-    return (
-        "Question: At what input value does the function's behavior change "
-        "(i.e., what is the threshold)? Give only the exact integer.\nAnswer: ",
-        str(threshold),
-    )
-
-
 def probe_conditional(
     struct: Dict[str, Any],
     held_out: List[Any],
@@ -715,10 +568,7 @@ def probe_conditional(
     probes = {
         "forward": _cond_probe_forward,
         "inverse": _cond_probe_inverse,
-        "articulation": _cond_probe_articulation,
         "ood": _cond_probe_ood,
-        "planning": _cond_probe_planning,
-        "structural": _cond_probe_structural,
     }
     return probes[application](struct, held_out, rng)
 

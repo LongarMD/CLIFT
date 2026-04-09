@@ -11,6 +11,6 @@
     ],
     "instruct": false
   },
-  "expected_record_count": 2160,
-  "content_sha256": "c1c0fc8f8453ce400ed604783c5d897a94895e4805f77ff91a71b7bd8266b32e"
+  "expected_record_count": 1440,
+  "content_sha256": "854ca908983b13de2a517ad8764ac139e1d3a8280bc579525bf59cbe7f2031c9"
 }

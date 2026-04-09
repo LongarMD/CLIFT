@@ -3,7 +3,8 @@
 import tempfile
 from pathlib import Path
 
-from clift.common import CLIFTInstance, export_jsonl, load_jsonl, mod_inverse
+from clift.common import CLIFTInstance, export_jsonl, load_jsonl
+from clift.tasks.functional_mappings import mod_inverse
 
 
 def test_export_load_jsonl_roundtrip_utf8() -> None:

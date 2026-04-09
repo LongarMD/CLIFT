@@ -18,6 +18,6 @@
       "register_machine_2d"
     ]
   },
-  "expected_record_count": 5160,
-  "content_sha256": "a8228a9f08092ac9679ffc9cfdb1cce6b0921df7909fac33cc0e0487bdba62d6"
+  "expected_record_count": 4440,
+  "content_sha256": "578e27a47d7fa87df95c0a9b7dc0980e333b427628c63c4b3d144efef0be4063"
 }
