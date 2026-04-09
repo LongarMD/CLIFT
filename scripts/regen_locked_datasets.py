@@ -42,10 +42,7 @@ def regen_locked_jsonl(manifest_rel: str, output_rel: str) -> None:
 
 def main() -> None:
     regen_locked_jsonl("data/manifest.json", "data/clift.jsonl")
-    regen_locked_jsonl(
-        "tests/fixtures/clift_families/functional_mappings/manifest.json",
-        "tests/fixtures/clift_families/functional_mappings/baseline.jsonl",
-    )
+
 
 
 if __name__ == "__main__":
